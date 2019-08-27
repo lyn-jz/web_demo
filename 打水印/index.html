@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<title>打水印</title>
+	<style type="text/css">
+		#canvas {
+			border: 1px solid #ddd;
+			display: block;
+			/*margin: auto;*/
+		}
+
+		.btn-group {
+			margin-top: 10px;
+		}
+	</style>
+</head>
+
+<body>
+	<canvas id="canvas" width="600px" height="300px;"></canvas>
+	<div class="btn-group">
+		<input type="file" id="uploadImg" value="guapi.jpg" />
+	</div>
+	<div class="btn-group">
+		<input type="text" placeholder="请输入水印文字" id="mark" value="hello world!">
+		<input type="button" id="markBtn" value="打水印" />
+	</div>
+	<script type="text/javascript">
+		window.onload = function () {
+			const uploadImgBtn = document.getElementById('uploadImg');
+			uploadImgBtn.addEventListener('change', function () {
+				draw(getFileURL(this.files[0]));
+			});
+
+			const markBtn = document.getElementById('markBtn');
+			const markText = document.getElementById('mark');
+			markBtn.addEventListener('click', () => {
+				draw(null, markText.value);
+			});
+
+			const draw = (function () {
+				const canvas = document.getElementById('canvas');
+				const context = canvas.getContext('2d');
+				let cvWidth = canvas.width;
+				let cvHeight = canvas.height;
+				let text = 'hello world!';
+				const img = new Image();
+				img.onload = paint;
+				img.src = 'guapi.jpg';
+				function paint() {
+					// 重新设定画布宽度
+					// 清空画布，把画画上，再打水印
+					cvWidth = canvas.width = img.width / img.height * cvHeight;
+					context.clearRect(0, 0, cvWidth, cvHeight);
+					context.drawImage(img, 0, 0, cvWidth, cvHeight);
+					printMark(text);
+				}
+				function printMark(str) {
+					if (!str) return;
+					context.save();
+					let cvlen = Math.floor(Math.sqrt(cvWidth * cvWidth + cvHeight * cvHeight));
+					context.translate(cvWidth / 2, cvHeight / 2);
+					context.rotate(-30 * Math.PI / 180);
+					context.translate(-cvlen / 2, -cvlen / 2);
+					// 此处修改字体大小、字体颜色
+					context.font = '25px Arial';
+					context.fillStyle = 'rgba(0,0,0,0.3)';
+					let strWidth = context.measureText(str).width;
+					let count = Math.floor(cvlen / strWidth) + 1;
+					let restr = ''; str = ' ' + str + ' ';
+					for (let i = 0; i < count; i++) {
+						restr += str;
+					}
+					const lineHeight = 40;
+					for (let i = lineHeight; i < cvlen; i += lineHeight) {
+						context.fillText(restr, 0, i);
+					}
+					context.restore();
+				}
+
+				return function (imgsrc, str) {
+					if (!imgsrc && !str) return;
+					if (str) { text = str; }
+					if (imgsrc) { img.src = imgsrc; }
+					else { paint(); }
+				}
+			})();
+
+			function getFileURL(file) {
+				var url = null;
+				if (window.createObjcectURL != undefined) {
+					url = window.createOjcectURL(file);
+				} else if (window.URL != undefined) {
+					url = window.URL.createObjectURL(file);
+				} else if (window.webkitURL != undefined) {
+					url = window.webkitURL.createObjectURL(file);
+				}
+				return url;
+			}
+		}
+	</script>
+</body>
+
+</html>
