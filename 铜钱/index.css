@@ -1,0 +1,16 @@
+.circle{
+  width: 100px;
+  height: 100px;
+  background-color: brown;
+  position: relative;
+  clip-path: circle(48% at 50% 50%);
+}
+
+.circle:before{
+  content: '';
+  background-color: white;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  clip-path: polygon(25% 25%, 25% 75%, 75% 75%, 75% 25%);
+}
