@@ -15,10 +15,9 @@ require.context = (directory, useSubdirectories = false, regExp = /^\.\\/) => {
   }
   context.keys = () => {
     function getKeys(dir){
-      let arr = fs.readdirSync(path.join(baseURL, dir));
-      let res = arr.reduce((acc, key) => {
-        let url = `.\\${path.join(dir, key)}`;
-        let stats = fs.statSync(path.join(baseURL, dir, key));
+      let res = fs.readdirSync(path.join(baseURL, dir)).reduce((acc, key) => {
+        const url = `.\\${path.join(dir, key)}`;
+        const stats = fs.statSync(path.join(baseURL, dir, key));
         if (stats.isDirectory()) {
           if (useSubdirectories) {
             acc = acc.concat(getKeys(url));
