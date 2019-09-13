@@ -7,8 +7,10 @@ require.context = (directory, useSubdirectories = false, regExp = /^\.\\/) => {
     const data = fs.readFileSync(path.join(baseURL, file), {
       encoding: 'utf8'
     });
-    const res = eval(data);
-    return res;
+    if(/.js$/.test(file)){
+      return eval(data);
+    }
+    return data;
   };
   context.resolve = (key) => {
     return `.\\${path.relative(process.cwd(), path.join(__dirname, key))}`;
