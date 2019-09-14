@@ -2,9 +2,24 @@ require.context = (directory, useSubdirectories = false, regExp = /^\.\\/) => {
   regExp = process.platform === 'darwin' ? /^\.\// : regExp;
   const fs = require('fs');
   const path = require('path');
-  const baseURL = path.join(__dirname, directory);
+  const absoluteURL = path.join(__dirname, directory);
+  const relativeURL = path.relative(process.cwd(), __dirname);
+  const map = {};
+  (function getMap(dir) {
+    fs.readdirSync(path.join(absoluteURL, dir)).map((file) => {
+      const url = `.\\${path.join(dir, file)}`;
+      const stats = fs.statSync(path.join(absoluteURL, dir, file));
+      if (stats.isDirectory()) {
+        if (useSubdirectories) {
+          getMap(url);
+        }
+      } else if (regExp.test(url)) {
+        map[url] = `.\\${path.join(relativeURL, file)}`;
+      }
+    });
+  })('.\\');
   const context = (file) => {
-    const data = fs.readFileSync(path.join(baseURL, file), {
+    const data = fs.readFileSync(path.join(absoluteURL, file), {
       encoding: 'utf8'
     });
     if(/.js$/.test(file)){
@@ -12,33 +27,22 @@ require.context = (directory, useSubdirectories = false, regExp = /^\.\\/) => {
     }
     return data;
   };
-  context.resolve = (key) => {
-    return `.\\${path.relative(process.cwd(), path.join(__dirname, key))}`;
+  context.resolve = (file) => {
+    return map[file];
   }
   context.keys = () => {
-    function getKeys(dir){
-      let res = fs.readdirSync(path.join(baseURL, dir)).reduce((acc, key) => {
-        const url = `.\\${path.join(dir, key)}`;
-        const stats = fs.statSync(path.join(baseURL, dir, key));
-        if (stats.isDirectory()) {
-          if (useSubdirectories) {
-            acc = acc.concat(getKeys(url));
-          }
-        } else if (regExp.test(url)){
-          acc.push(url);
-        }
-        return acc;
-      }, []);
-      return res;
-    }
-    return getKeys('.\\');
+    return Object.keys(map);
   }
-  context.id = `.\\${path.relative(process.cwd(), __dirname)} sync ${regExp}`;
+  context.id = `.\\${relativeURL} sync ${regExp}`;
+  // context.map = map;
   return context;
 }
-const context = require.context('./test', true, /.js$/);
-console.log('id:', context.id); // id: .\require.context sync / .js$ /
-console.log('keys:', context.keys()); // keys: Array(3)[".\sub\test11.js", ".\test1.js", ".\test2.js"]
+const context = require.context('./test', true, /\.js$/);
+console.log('id:', context.id);
+// id: .\require.context sync / .js$ /
+console.log('keys:', context.keys());
+// keys: Array(3)[".\sub\test11.js", ".\test1.js", ".\test2.js"]
+// console.log('map:', context.map);
 context.keys().map(val => {
   console.log(context.resolve(val), context(val));
 });
