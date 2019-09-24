@@ -1,4 +1,5 @@
 require.context = (directory, useSubdirectories = false, regExp = /^\.\\/) => {
+  // 判断是windows还是Mac
   regExp = process.platform === 'darwin' ? /^\.\// : regExp;
   const fs = require('fs');
   const path = require('path');
