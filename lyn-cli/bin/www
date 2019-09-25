@@ -1,0 +1,4 @@
+#!/usr/bin/env node
+
+// 可执行文件，执行某个文件的编译功能
+require('../src/main.js');
